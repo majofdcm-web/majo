@@ -22,7 +22,8 @@ export type Permission =
   | "panel"
   | "nomina"
   | "contador"
-  | "usuarios";
+  | "usuarios"
+  | "personal";
 
 export const PERMISSION_LABEL: Record<Permission, string> = {
   mesas: "Abrir mesas y tomar comandas",
@@ -39,12 +40,13 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   nomina: "Nómina y gastos fijos",
   contador: "Paquete para el contador",
   usuarios: "Usuarios, PIN y permisos",
+  personal: "Registrar comida de personal",
 };
 
 export const DEFAULT_ROLE_PERMS: Record<Role, Permission[]> = {
-  mesero: ["mesas"],
+  mesero: ["mesas", "personal"],
   barra: ["barra", "conteo"],
-  caja: ["mesas", "cobrar", "gastos", "corte", "conteo"],
+  caja: ["mesas", "cobrar", "gastos", "corte", "conteo", "personal"],
   gerente: [
     "mesas",
     "cobrar",
@@ -56,6 +58,7 @@ export const DEFAULT_ROLE_PERMS: Record<Role, Permission[]> = {
     "inventario",
     "conteo",
     "ventasHoy",
+    "personal",
   ],
   admin: [
     "mesas",
@@ -72,6 +75,7 @@ export const DEFAULT_ROLE_PERMS: Record<Role, Permission[]> = {
     "nomina",
     "contador",
     "usuarios",
+    "personal",
   ],
 };
 
@@ -99,7 +103,10 @@ export type RecipeAdjust = [ingredientId: string, qtyPerUnit: number];
 export interface ModifierOption {
   name: string;
   priceDelta: number;
+  /** Se suma a la receta base del producto (ej. un extra). */
   recipe?: RecipeAdjust[];
+  /** Reemplaza por completo la receta base (ej. tamaño grande, o elegir baguette/ciabatta). */
+  recipeOverride?: RecipeAdjust[];
 }
 
 export interface ModifierGroup {
@@ -231,4 +238,14 @@ export interface CashCount {
   counted: number;
   difference: number;
   countedBy: string;
+}
+
+/** Comida que consume el personal: descuenta inventario pero no genera venta. */
+export interface StaffConsumption {
+  id: string;
+  ts: number;
+  employeeName: string;
+  items: OrderItem[];
+  cost: number;
+  registeredBy: string;
 }

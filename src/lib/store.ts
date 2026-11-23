@@ -2,9 +2,9 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { verifyPin } from "@/lib/pin";
 import {
-  MODIFIER_GROUPS,
-  seedIngredients,
-  seedProducts,
+  MODIFIER_GROUPS_REAL,
+  seedIngredientsReal,
+  seedProductsReal,
   seedTables,
   seedUsers,
 } from "@/lib/seed";
@@ -25,6 +25,7 @@ import type {
   Sale,
   SelectedModifier,
   Shift,
+  StaffConsumption,
   Table,
   User,
 } from "@/lib/types";
@@ -42,8 +43,22 @@ interface AppState {
   expenses: Expense[];
   shift: Shift | null;
   cashCounts: CashCount[];
+  staffConsumptions: StaffConsumption[];
   folio: number;
   loginAttempts: Record<string, { count: number; lockedUntil: number }>;
+}
+
+/** Para datos de prueba: si el producto tiene un grupo de modificadores
+ * obligatorio (tamaño, tipo de pan, combo...), elige la primera opción. */
+function defaultSelection(st: AppState, product: Product): SelectedModifier[] {
+  const sel: SelectedModifier[] = [];
+  for (const gid of product.modifierGroupIds) {
+    const group = st.modifierGroups.find((g) => g.id === gid);
+    if (!group || !group.required) continue;
+    const opt = group.options[0];
+    if (opt) sel.push({ groupId: gid, name: opt.name, priceDelta: opt.priceDelta });
+  }
+  return sel;
 }
 
 /** Arma una línea de comanda usando los catálogos de `st` directamente
@@ -51,19 +66,28 @@ interface AppState {
 function demoLine(
   st: AppState,
   productId: string,
-  modifiers: SelectedModifier[],
   qty: number,
   status: OrderItem["status"],
 ): OrderItem {
-  const product = st.products.find((p) => p.id === productId)!;
-  const unitPrice = product.price + modifiers.reduce((a, m) => a + m.priceDelta, 0);
-  const recipe: Record<string, number> = {};
+  const product = st.products.find((p) => p.id === productId);
+  if (!product) throw new Error(`Producto de semilla no encontrado: ${productId}`);
+  const modifiers = defaultSelection(st, product);
+  let recipe: Record<string, number> = {};
   for (const [ing, q] of product.recipe) recipe[ing] = (recipe[ing] ?? 0) + q;
+  for (const m of modifiers) {
+    const group = st.modifierGroups.find((g) => g.id === m.groupId);
+    const opt = group?.options.find((o) => o.name === m.name);
+    if (opt?.recipeOverride) {
+      recipe = {};
+      for (const [ing, q] of opt.recipeOverride) recipe[ing] = (recipe[ing] ?? 0) + q;
+    }
+  }
   for (const m of modifiers) {
     const group = st.modifierGroups.find((g) => g.id === m.groupId);
     const opt = group?.options.find((o) => o.name === m.name);
     for (const [ing, q] of opt?.recipe ?? []) recipe[ing] = (recipe[ing] ?? 0) + q;
   }
+  const unitPrice = product.price + modifiers.reduce((a, m) => a + m.priceDelta, 0);
   const unitCost = Object.entries(recipe).reduce((a, [ingId, q]) => {
     const ing = st.ingredients.find((x) => x.id === ingId);
     return a + (ing ? ing.cost * Math.max(q, 0) : 0);
@@ -115,15 +139,16 @@ function seedState(): AppState {
   const st: AppState = {
     users: seedUsers(),
     rolePerms: structuredClone(DEFAULT_ROLE_PERMS),
-    ingredients: seedIngredients(),
-    products: seedProducts(),
-    modifierGroups: MODIFIER_GROUPS,
+    ingredients: seedIngredientsReal(),
+    products: seedProductsReal(),
+    modifierGroups: MODIFIER_GROUPS_REAL,
     tables: seedTables(),
     orders: {},
     sales: [],
     expenses: [],
     shift: { id: randomUUID(), openedAt: Date.now() - 3 * 3600000, closedAt: null, fund: 1000, openedBy: "Caja" },
     cashCounts: [],
+    staffConsumptions: [],
     folio: 1000,
     loginAttempts: {},
   };
@@ -137,8 +162,8 @@ function seedState(): AppState {
     openedAt: Date.now() - 18 * 60000,
     people: 2,
     items: [
-      demoLine(st, "pancasa", [], 1, "enviado"),
-      demoLine(st, "americano", [{ groupId: "tam", name: "Grande", priceDelta: 7 }], 1, "enviado"),
+      demoLine(st, "panMasaMadre", 1, "enviado"),
+      demoLine(st, "cafeLatte", 1, "enviado"),
     ],
   };
   st.orders[order1.id] = order1;
@@ -151,7 +176,7 @@ function seedState(): AppState {
     waiterName: "Mesero 2",
     openedAt: Date.now() - 6 * 60000,
     people: 3,
-    items: [demoLine(st, "chilaq", [], 2, "pendiente")],
+    items: [demoLine(st, "clasicosGringos", 2, "pendiente")],
   };
   st.orders[order2.id] = order2;
   st.tables[2].orderId = order2.id;
@@ -164,15 +189,15 @@ function seedState(): AppState {
       tableName: "Mesa 5",
       waiterName: "Mesero 1",
       cashierName: "Caja",
-      items: [demoLine(st, "latte", [], 2, "listo")],
+      items: [demoLine(st, "cafeLatte", 2, "listo")],
       method: "efectivo",
     }),
     demoSale(st, {
       ts: shiftStart + 55 * 60000,
-      tableName: "Barra",
+      tableName: "Mesa 8",
       waiterName: "Mesero 2",
       cashierName: "Caja",
-      items: [demoLine(st, "capu", [], 1, "listo"), demoLine(st, "mollete", [], 1, "listo")],
+      items: [demoLine(st, "cafeCapuchino", 1, "listo"), demoLine(st, "molletesClasicos", 1, "listo")],
       tip: 20,
       method: "tarjeta",
     }),
@@ -181,7 +206,7 @@ function seedState(): AppState {
       tableName: "Mesa 7",
       waiterName: "Mesero 1",
       cashierName: "Caja",
-      items: [demoLine(st, "cerveza", [], 2, "listo")],
+      items: [demoLine(st, "cerveza", 2, "listo")],
       method: "transferencia",
     }),
   );
@@ -322,15 +347,29 @@ export function modifierGroup(id: string): ModifierGroup | undefined {
   return state().modifierGroups.find((g) => g.id === id);
 }
 
-function lineFor(
+export function listModifierGroups(): ModifierGroup[] {
+  return state().modifierGroups;
+}
+
+export function lineFor(
   product: Product,
   selected: SelectedModifier[],
   qty: number,
   note: string,
 ): OrderItem {
   const unitPrice = product.price + selected.reduce((a, m) => a + m.priceDelta, 0);
-  const recipe: Record<string, number> = {};
+  let recipe: Record<string, number> = {};
   for (const [ing, q] of product.recipe) recipe[ing] = (recipe[ing] ?? 0) + q;
+  // Un modificador con recipeOverride (ej. tamaño, tipo de pan) reemplaza toda la receta base.
+  for (const m of selected) {
+    const group = modifierGroup(m.groupId);
+    const opt = group?.options.find((o) => o.name === m.name);
+    if (opt?.recipeOverride) {
+      recipe = {};
+      for (const [ing, q] of opt.recipeOverride) recipe[ing] = (recipe[ing] ?? 0) + q;
+    }
+  }
+  // Un modificador con recipe (ej. combo, extra) se suma encima de la receta ya resuelta.
   for (const m of selected) {
     const group = modifierGroup(m.groupId);
     const opt = group?.options.find((o) => o.name === m.name);
@@ -598,4 +637,45 @@ export function setRolePermission(user: User, role: Role, perm: Permission, enab
   if (enabled) current.add(perm);
   else current.delete(perm);
   state().rolePerms[role] = [...current];
+}
+
+export interface StaffConsumptionItemInput {
+  productId: string;
+  selected: SelectedModifier[];
+  qty: number;
+  note: string;
+}
+
+export function registerStaffConsumption(
+  user: User,
+  employeeName: string,
+  items: StaffConsumptionItemInput[],
+): StaffConsumption {
+  requirePerm(user, "personal");
+  const name = employeeName.trim();
+  if (!name) throw new Error("Falta elegir quién comió.");
+  if (items.length === 0) throw new Error("Agrega al menos un producto.");
+
+  const lines = items.map((it) => {
+    const product = state().products.find((p) => p.id === it.productId);
+    if (!product) throw new Error("Producto no encontrado.");
+    return lineFor(product, it.selected, it.qty, it.note);
+  });
+
+  deductInventory(lines, -1);
+  const cost = round2(lines.reduce((a, i) => a + i.unitCost * i.qty, 0));
+  const record: StaffConsumption = {
+    id: randomUUID(),
+    ts: Date.now(),
+    employeeName: name,
+    items: lines,
+    cost,
+    registeredBy: user.name,
+  };
+  state().staffConsumptions.push(record);
+  return record;
+}
+
+export function listStaffConsumptions(limit = 30): StaffConsumption[] {
+  return [...state().staffConsumptions].sort((a, b) => b.ts - a.ts).slice(0, limit);
 }

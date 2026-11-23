@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { can, getOrder, listProductsByCategory, listTables } from "@/lib/store";
-import { MODIFIER_GROUPS } from "@/lib/seed";
+import { can, getOrder, listModifierGroups, listProductsByCategory, listTables } from "@/lib/store";
 import ComandaView from "@/components/comanda-view";
 
 export default async function OrdenPage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,7 +22,7 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
       order={order}
       tableName={table.name}
       catalog={listProductsByCategory()}
-      modifierGroups={MODIFIER_GROUPS}
+      modifierGroups={listModifierGroups()}
       canCobrar={can(user, "cobrar")}
     />
   );
