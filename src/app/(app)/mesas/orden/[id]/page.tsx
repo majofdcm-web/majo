@@ -21,7 +21,7 @@ export default async function OrdenPage({ params }: { params: Promise<{ id: stri
     <ComandaView
       order={order}
       tableName={table.name}
-      catalog={listProductsByCategory()}
+      catalog={listProductsByCategory().filter((c) => c.category !== "Personal")}
       modifierGroups={listModifierGroups()}
       canCobrar={can(user, "cobrar")}
     />

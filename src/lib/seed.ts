@@ -155,12 +155,17 @@ export function seedIngredientsReal(): Ingredient[] {
 }
 
 export const MODIFIER_GROUPS_REAL: ModifierGroup[] = [
-  { id: "combo", name: "¿Solo o en combo? (+$60: café, té, jugo o fruta)", type: "one", required: true, options: [
+  { id: "combo", name: "¿Solo o en combo? (+$60: elige una bebida y un acompañante)", type: "one", required: true, options: [
       { name: "Solo platillo", priceDelta: 0 },
-      { name: "Combo + Café americano", priceDelta: 60 },
-      { name: "Combo + Té", priceDelta: 60, recipe: [["agua", 280], ["teVerde", 1]] as RecipeAdjust[] },
-      { name: "Combo + Jugo del día", priceDelta: 60, recipe: [["jugoDelDia", 300]] as RecipeAdjust[] },
-      { name: "Combo + Fruta de temporada", priceDelta: 60, recipe: [["frutaDeTemporada", 150]] as RecipeAdjust[] },
+      { name: "Combo: Café americano + Jugo del día", priceDelta: 60, recipe: [["agua", 810], ["cafe", 22.5], ["jugoDelDia", 300]] as RecipeAdjust[] },
+      { name: "Combo: Café americano + Fruta de temporada", priceDelta: 60, recipe: [["agua", 810], ["cafe", 22.5], ["frutaDeTemporada", 150]] as RecipeAdjust[] },
+      { name: "Combo: Té + Jugo del día", priceDelta: 60, recipe: [["agua", 280], ["teVerde", 1], ["jugoDelDia", 300]] as RecipeAdjust[] },
+      { name: "Combo: Té + Fruta de temporada", priceDelta: 60, recipe: [["agua", 280], ["teVerde", 1], ["frutaDeTemporada", 150]] as RecipeAdjust[] },
+    ] },
+  { id: "proteinaPersonal", name: "Proteína", type: "one", required: true, options: [
+      { name: "Arrachera", priceDelta: 0, recipeOverride: [["arrachera", 200], ["frijolNegro", 50], ["sal", 0.35], ["pimienta", 0.35], ["lechuga", 20], ["jitomateCherry", 20], ["germen", 10], ["pepino", 10], ["totopos", 30], ["salsaRojaOVerde", 40], ["cremaAlpura", 15], ["quesoPanela", 10]] as RecipeAdjust[] },
+      { name: "Pechuga de pollo", priceDelta: 0, recipeOverride: [["pollo", 200], ["frijolNegro", 50], ["sal", 0.35], ["pimienta", 0.35], ["lechuga", 20], ["jitomateCherry", 20], ["germen", 10], ["pepino", 10], ["totopos", 30], ["salsaRojaOVerde", 40], ["cremaAlpura", 15], ["quesoPanela", 10]] as RecipeAdjust[] },
+      { name: "Costilla", priceDelta: 0, recipeOverride: [["costilla", 200], ["frijolNegro", 50], ["sal", 0.35], ["pimienta", 0.35], ["lechuga", 20], ["jitomateCherry", 20], ["germen", 10], ["pepino", 10], ["totopos", 30], ["salsaRojaOVerde", 40], ["cremaAlpura", 15], ["quesoPanela", 10]] as RecipeAdjust[] },
     ] },
   { id: "panClasica", name: "Tipo de pan", type: "one", required: true, options: [
       { name: "Baguette", priceDelta: 0, recipeOverride: [["baguette", 1], ["jamon", 60], ["quesoManchego", 30], ["jitomate", 20], ["aceiteDeOliva", 1], ["mayonesa", 20], ["lechuga", 15], ["cebollaMorada", 8], ["germen", 10], ["aceitunasNegras", 5], ["mantequilla", 20], ["sal", 0.35], ["pimienta", 0.35], ["pepino", 20], ["pimientoMorron", 8]] as RecipeAdjust[] },
@@ -302,6 +307,7 @@ export const MODIFIER_GROUPS_REAL: ModifierGroup[] = [
 
 export function seedProductsReal(): Product[] {
   const rows: [string, string, string, number, RecipeAdjust[], string[]][] = [
+    ["comidaDeEmpleado", "Comida de empleado", "Personal", 0, [["arrachera", 200], ["frijolNegro", 50], ["sal", 0.35], ["pimienta", 0.35], ["lechuga", 20], ["jitomateCherry", 20], ["germen", 10], ["pepino", 10], ["totopos", 30], ["salsaRojaOVerde", 40], ["cremaAlpura", 15], ["quesoPanela", 10]] as RecipeAdjust[], ["proteinaPersonal"]],
     ["panMasaMadre", "Pan gourmet de masa madre", "Pan de la casa", 64, [["panMasaMadre", 1]] as RecipeAdjust[], []],
     ["panDulce", "Pan dulce", "Pan de la casa", 35, [["panDulce", 1]] as RecipeAdjust[], []],
     ["huevosALaMexicana", "Huevos a la mexicana", "Huevos al gusto", 105, [["huevo", 2], ["cebollaBlanca", 20], ["jitomate", 20], ["chileSerrano", 5], ["sal", 0.35], ["pimienta", 0.35], ["frijolNegro", 70]] as RecipeAdjust[], ["combo"]],
