@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { money, money2, fmtDateTime } from "@/lib/format";
-import { PAYMENT_LABEL } from "@/lib/types";
+import { DELIVERY_MODE_LABEL, PAYMENT_LABEL } from "@/lib/types";
 import type { Sale } from "@/lib/types";
 
 export default function TicketView({ sale }: { sale: Sale }) {
@@ -27,6 +27,7 @@ export default function TicketView({ sale }: { sale: Sale }) {
         <Row l="Folio" r={sale.folio} />
         <Row l="Mesa" r={sale.tableName} />
         {sale.customerName && <Row l="Cliente" r={sale.customerName} />}
+        <Row l="Entrega" r={DELIVERY_MODE_LABEL[sale.deliveryMode]} />
         <Row l="Atendió" r={sale.waiterName} />
         <Row l="Cobró" r={sale.cashierName} />
         <div className="border-t border-dashed border-black my-2" />

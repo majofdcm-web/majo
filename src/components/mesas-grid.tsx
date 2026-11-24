@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { money } from "@/lib/format";
 import { openTableAction } from "@/lib/actions/orders";
+import type { DeliveryMode } from "@/lib/types";
 
 interface TableVM {
   id: string;
@@ -16,6 +17,7 @@ interface TableVM {
   minutesOpen?: number;
   total?: number;
   customerName?: string;
+  deliveryMode?: DeliveryMode;
 }
 
 export default function MesasGrid({
@@ -89,7 +91,12 @@ export default function MesasGrid({
               t.occupied && !t.mine && !canForce ? "opacity-60" : "",
             ].join(" ")}
           >
-            <span className="font-semibold text-lg">{t.name}</span>
+            <div className="flex items-center justify-between gap-1">
+              <span className="font-semibold text-lg">{t.name}</span>
+              {t.occupied && t.deliveryMode === "llevar" && (
+                <span className="chip chip-w !bg-white/20 !text-white text-[10px]">Para llevar</span>
+              )}
+            </div>
             {t.occupied ? (
               <span className="text-xs text-[#D5E8E5]">
                 {t.people} pers · {t.minutesOpen} min · {t.waiterName}

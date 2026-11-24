@@ -11,6 +11,7 @@ import {
 import { round2 } from "@/lib/format";
 import type {
   CashCount,
+  DeliveryMode,
   Expense,
   ExpenseCategory,
   ExpenseOrigin,
@@ -132,6 +133,7 @@ function demoSale(st: AppState, input: {
     method: input.method,
     commission: input.method === "tarjeta" ? round2(total * 0.05) : 0,
     cost: round2(cost),
+    deliveryMode: "aqui",
   };
 }
 
@@ -165,6 +167,7 @@ function seedState(): AppState {
       demoLine(st, "panMasaMadre", 1, "enviado"),
       demoLine(st, "cafeLatte", 1, "enviado"),
     ],
+    deliveryMode: "aqui",
   };
   st.orders[order1.id] = order1;
   st.tables[0].orderId = order1.id;
@@ -177,6 +180,7 @@ function seedState(): AppState {
     openedAt: Date.now() - 6 * 60000,
     people: 3,
     items: [demoLine(st, "clasicosGringos", 2, "pendiente")],
+    deliveryMode: "llevar",
   };
   st.orders[order2.id] = order2;
   st.tables[2].orderId = order2.id;
@@ -409,6 +413,7 @@ export function openTable(user: User, tableId: string): Order {
     openedAt: Date.now(),
     people: 2,
     items: [],
+    deliveryMode: "aqui",
   };
   state().orders[order.id] = order;
   table.orderId = order.id;
@@ -443,6 +448,13 @@ export function setOrderCustomer(user: User, orderId: string, customerName: stri
   if (!order) throw new Error("Orden no encontrada");
   assertCanEditOrder(user, order);
   order.customerName = customerName.trim() || undefined;
+}
+
+export function setOrderDeliveryMode(user: User, orderId: string, mode: DeliveryMode) {
+  const order = state().orders[orderId];
+  if (!order) throw new Error("Orden no encontrada");
+  assertCanEditOrder(user, order);
+  order.deliveryMode = mode;
 }
 
 export interface CustomerStat {
@@ -555,6 +567,7 @@ export function payOrder(user: User, orderId: string, input: PayOrderInput): Sal
     commission,
     cost: round2(cost),
     customerName: order.customerName,
+    deliveryMode: order.deliveryMode,
   };
 
   deductInventory(order.items, -1);

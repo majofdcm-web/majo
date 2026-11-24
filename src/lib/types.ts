@@ -164,6 +164,13 @@ export interface OrderItem {
   status: ItemStatus;
 }
 
+export type DeliveryMode = "aqui" | "llevar";
+
+export const DELIVERY_MODE_LABEL: Record<DeliveryMode, string> = {
+  aqui: "Para comer aquí",
+  llevar: "Para llevar",
+};
+
 export interface Order {
   id: string;
   tableId: string;
@@ -174,6 +181,8 @@ export interface Order {
   items: OrderItem[];
   /** Nombre del cliente frecuente que se sentó en esta mesa, si aplica. */
   customerName?: string;
+  /** Si es para comer en el café o para llevar (define si se empaca en desechable). */
+  deliveryMode: DeliveryMode;
 }
 
 export interface Sale {
@@ -193,6 +202,7 @@ export interface Sale {
   commission: number;
   cost: number;
   customerName?: string;
+  deliveryMode: DeliveryMode;
 }
 
 export const EXPENSE_ORIGINS = [

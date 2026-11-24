@@ -9,11 +9,13 @@ import {
   removeItemAction,
   sendToKitchenAction,
   setCustomerAction,
+  setDeliveryModeAction,
   setPeopleAction,
 } from "@/lib/actions/orders";
 import ProductModal from "@/components/product-modal";
 import AuthModal from "@/components/auth-modal";
-import type { ModifierGroup, Order, Product, SelectedModifier } from "@/lib/types";
+import type { DeliveryMode, ModifierGroup, Order, Product, SelectedModifier } from "@/lib/types";
+import { DELIVERY_MODE_LABEL } from "@/lib/types";
 
 export default function ComandaView({
   order,
@@ -143,6 +145,16 @@ export default function ComandaView({
     });
   }
 
+  function setDeliveryMode(mode: DeliveryMode) {
+    setBusy(true);
+    startTransition(async () => {
+      const res = await setDeliveryModeAction(order.id, mode);
+      setBusy(false);
+      if (!res.ok) flash(res.error);
+      else router.refresh();
+    });
+  }
+
   const total = order.items.reduce((a, i) => a + i.unitPrice * i.qty, 0);
   const pendingCount = order.items.filter((i) => i.status === "pendiente").length;
   const statusLabel = { pendiente: "Sin enviar", enviado: "En preparación", listo: "Entregado" } as const;
@@ -184,6 +196,24 @@ export default function ComandaView({
         <button onClick={saveCustomer} className="btn btn-sm" disabled={busy}>
           Guardar
         </button>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-sm font-semibold text-(--muted)">Entrega</span>
+        {(Object.keys(DELIVERY_MODE_LABEL) as DeliveryMode[]).map((mode) => (
+          <button
+            key={mode}
+            onClick={() => setDeliveryMode(mode)}
+            disabled={busy}
+            className={`min-h-9 px-3.5 rounded-xl border text-sm ${
+              order.deliveryMode === mode
+                ? "bg-(--teal-t) border-2 border-(--teal) text-(--teal) font-semibold"
+                : "border-(--line) bg-white"
+            }`}
+          >
+            {DELIVERY_MODE_LABEL[mode]}
+          </button>
+        ))}
       </div>
 
       {notice && <div className="chip chip-w">{notice}</div>}

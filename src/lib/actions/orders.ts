@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/session";
 import * as store from "@/lib/store";
-import type { SelectedModifier } from "@/lib/types";
+import type { DeliveryMode, SelectedModifier } from "@/lib/types";
 
 async function requireUser() {
   const user = await getCurrentUser();
@@ -42,6 +42,18 @@ export async function setCustomerAction(orderId: string, customerName: string) {
     const user = await requireUser();
     store.setOrderCustomer(user, orderId, customerName);
     revalidatePath(`/mesas/orden/${orderId}`);
+    return { ok: true as const };
+  } catch (e) {
+    return { ok: false as const, error: errMsg(e) };
+  }
+}
+
+export async function setDeliveryModeAction(orderId: string, mode: DeliveryMode) {
+  try {
+    const user = await requireUser();
+    store.setOrderDeliveryMode(user, orderId, mode);
+    revalidatePath(`/mesas/orden/${orderId}`);
+    revalidatePath("/mesas");
     return { ok: true as const };
   } catch (e) {
     return { ok: false as const, error: errMsg(e) };
