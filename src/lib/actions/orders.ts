@@ -37,6 +37,17 @@ export async function closeEmptyOrderAction(orderId: string) {
   }
 }
 
+export async function setCustomerAction(orderId: string, customerName: string) {
+  try {
+    const user = await requireUser();
+    store.setOrderCustomer(user, orderId, customerName);
+    revalidatePath(`/mesas/orden/${orderId}`);
+    return { ok: true as const };
+  } catch (e) {
+    return { ok: false as const, error: errMsg(e) };
+  }
+}
+
 export async function setPeopleAction(orderId: string, people: number) {
   try {
     const user = await requireUser();

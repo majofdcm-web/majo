@@ -26,6 +26,7 @@ export default function TicketView({ sale }: { sale: Sale }) {
         <div className="border-t border-dashed border-black my-2" />
         <Row l="Folio" r={sale.folio} />
         <Row l="Mesa" r={sale.tableName} />
+        {sale.customerName && <Row l="Cliente" r={sale.customerName} />}
         <Row l="Atendió" r={sale.waiterName} />
         <Row l="Cobró" r={sale.cashierName} />
         <div className="border-t border-dashed border-black my-2" />

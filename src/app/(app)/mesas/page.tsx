@@ -27,6 +27,7 @@ export default async function MesasPage() {
       people: order.people,
       minutesOpen: Math.max(0, Math.round((now - order.openedAt) / 60000)),
       total,
+      customerName: order.customerName,
     };
   });
 

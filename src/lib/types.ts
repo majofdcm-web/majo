@@ -172,6 +172,8 @@ export interface Order {
   openedAt: number;
   people: number;
   items: OrderItem[];
+  /** Nombre del cliente frecuente que se sentó en esta mesa, si aplica. */
+  customerName?: string;
 }
 
 export interface Sale {
@@ -190,6 +192,7 @@ export interface Sale {
   method: PaymentMethod;
   commission: number;
   cost: number;
+  customerName?: string;
 }
 
 export const EXPENSE_ORIGINS = [

@@ -438,6 +438,33 @@ export function setOrderPeople(user: User, orderId: string, people: number) {
   order.people = Math.max(1, people);
 }
 
+export function setOrderCustomer(user: User, orderId: string, customerName: string) {
+  const order = state().orders[orderId];
+  if (!order) throw new Error("Orden no encontrada");
+  assertCanEditOrder(user, order);
+  order.customerName = customerName.trim() || undefined;
+}
+
+export interface CustomerStat {
+  name: string;
+  visits: number;
+  total: number;
+  lastVisit: number;
+}
+
+export function listFrequentCustomers(): CustomerStat[] {
+  const map = new Map<string, CustomerStat>();
+  for (const s of state().sales) {
+    if (!s.customerName) continue;
+    const cur = map.get(s.customerName) ?? { name: s.customerName, visits: 0, total: 0, lastVisit: 0 };
+    cur.visits += 1;
+    cur.total = round2(cur.total + s.total);
+    cur.lastVisit = Math.max(cur.lastVisit, s.ts);
+    map.set(s.customerName, cur);
+  }
+  return [...map.values()].sort((a, b) => b.lastVisit - a.lastVisit);
+}
+
 export function addItem(
   user: User,
   orderId: string,
@@ -527,6 +554,7 @@ export function payOrder(user: User, orderId: string, input: PayOrderInput): Sal
     method: input.method,
     commission,
     cost: round2(cost),
+    customerName: order.customerName,
   };
 
   deductInventory(order.items, -1);

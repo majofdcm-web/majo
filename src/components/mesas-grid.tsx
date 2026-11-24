@@ -15,6 +15,7 @@ interface TableVM {
   people?: number;
   minutesOpen?: number;
   total?: number;
+  customerName?: string;
 }
 
 export default function MesasGrid({
@@ -67,7 +68,15 @@ export default function MesasGrid({
         </p>
       </div>
       {notice && <div className="chip chip-w">{notice}</div>}
-      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))" }}>
+      <p className="text-xs text-(--muted) -mt-2">Acomodadas igual que el plano real del Salón.</p>
+      <div
+        className="grid gap-3"
+        style={{
+          gridAutoFlow: "column",
+          gridTemplateRows: "repeat(5, minmax(100px, auto))",
+          gridTemplateColumns: "repeat(2, minmax(150px, 220px))",
+        }}
+      >
         {tables.map((t) => (
           <button
             key={t.id}
@@ -84,6 +93,7 @@ export default function MesasGrid({
             {t.occupied ? (
               <span className="text-xs text-[#D5E8E5]">
                 {t.people} pers · {t.minutesOpen} min · {t.waiterName}
+                {t.customerName ? ` · ${t.customerName}` : ""}
               </span>
             ) : (
               <span className="text-xs text-(--muted)">Libre</span>

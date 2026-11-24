@@ -8,6 +8,7 @@ import {
   closeEmptyOrderAction,
   removeItemAction,
   sendToKitchenAction,
+  setCustomerAction,
   setPeopleAction,
 } from "@/lib/actions/orders";
 import ProductModal from "@/components/product-modal";
@@ -34,6 +35,7 @@ export default function ComandaView({
   const [notice, setNotice] = useState("");
   const [modalProduct, setModalProduct] = useState<{ product: Product; groups: ModifierGroup[] } | null>(null);
   const [authFor, setAuthFor] = useState<string | null>(null);
+  const [customerInput, setCustomerInput] = useState(order.customerName ?? "");
 
   function flash(msg: string) {
     setNotice(msg);
@@ -128,6 +130,19 @@ export default function ComandaView({
     });
   }
 
+  function saveCustomer() {
+    setBusy(true);
+    startTransition(async () => {
+      const res = await setCustomerAction(order.id, customerInput);
+      setBusy(false);
+      if (!res.ok) flash(res.error);
+      else {
+        flash(customerInput.trim() ? "Cliente frecuente guardado" : "Se quitó el cliente frecuente");
+        router.refresh();
+      }
+    });
+  }
+
   const total = order.items.reduce((a, i) => a + i.unitPrice * i.qty, 0);
   const pendingCount = order.items.filter((i) => i.status === "pendiente").length;
   const statusLabel = { pendiente: "Sin enviar", enviado: "En preparación", listo: "Entregado" } as const;
@@ -152,6 +167,23 @@ export default function ComandaView({
             +
           </button>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <label htmlFor="cliente" className="text-sm font-semibold text-(--muted)">
+          Cliente frecuente
+        </label>
+        <input
+          id="cliente"
+          className="input max-w-[220px]"
+          placeholder="Nombre (opcional)"
+          value={customerInput}
+          onChange={(e) => setCustomerInput(e.target.value)}
+          disabled={busy}
+        />
+        <button onClick={saveCustomer} className="btn btn-sm" disabled={busy}>
+          Guardar
+        </button>
       </div>
 
       {notice && <div className="chip chip-w">{notice}</div>}
