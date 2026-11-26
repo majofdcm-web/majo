@@ -768,8 +768,11 @@ export const MODIFIER_GROUPS_REAL: ModifierGroup[] = [
       { name: "Pimienta", priceDelta: 0, recipe: [["pimienta", 0.35]] as RecipeAdjust[], defaultChecked: true },
       { name: "Pimiento Morron", priceDelta: 0, recipe: [["pimientoMorron", 8]] as RecipeAdjust[], defaultChecked: true },
     ] },
+  { id: "proteinaEntrepanBeef", name: "Proteína", type: "one", required: true, options: [
+      { name: "Arrachera", priceDelta: 0, recipe: [["arrachera", 100]] as RecipeAdjust[] },
+      { name: "Costilla", priceDelta: 0, recipe: [["costilla", 100]] as RecipeAdjust[] },
+    ] },
   { id: "ingEntrepanBeef", name: "Ingredientes", type: "many", required: false, options: [
-      { name: "Arrachera", priceDelta: 0, recipe: [["arrachera", 100]] as RecipeAdjust[], defaultChecked: true },
       { name: "Queso Manchego", priceDelta: 0, recipe: [["quesoManchego", 30]] as RecipeAdjust[], defaultChecked: true },
       { name: "Jitomate", priceDelta: 0, recipe: [["jitomate", 20]] as RecipeAdjust[], defaultChecked: true },
       { name: "Aceite De Oliva", priceDelta: 0, recipe: [["aceiteDeOliva", 1]] as RecipeAdjust[], defaultChecked: true },
@@ -996,7 +999,7 @@ export function seedProductsReal(): Product[] {
     ["entrepanItaliana", "Italiana", "Entre panes", 142, [] as RecipeAdjust[], ["panItaliana", "extras", "ingEntrepanItaliana"]],
     ["entrepanCarnesFrias", "Carnes frías", "Entre panes", 142, [] as RecipeAdjust[], ["panCarnesFrias", "extras", "ingEntrepanCarnesFrias"]],
     ["entrepanVegetariana", "Vegetariana", "Entre panes", 130, [] as RecipeAdjust[], ["panVegetariana", "extras", "ingEntrepanVegetariana"]],
-    ["entrepanBeef", "Beef", "Entre panes", 155, [] as RecipeAdjust[], ["panBeef", "extras", "ingEntrepanBeef"]],
+    ["entrepanBeef", "Beef", "Entre panes", 155, [] as RecipeAdjust[], ["panBeef", "proteinaEntrepanBeef", "extras", "ingEntrepanBeef"]],
     ["cafeAmericanoRefil", "Americano refil", "Café", 50, [["agua", 810], ["cafe", 22.5]] as RecipeAdjust[], ["extraCafe"]],
     ["cafeEspressoSencillo", "Espresso sencillo", "Café", 42, [["agua", 60], ["cafe", 7.5]] as RecipeAdjust[], ["extraCafe"]],
     ["cafeExpressoDoble", "Expresso doble", "Café", 50, [["agua", 60], ["cafe", 15]] as RecipeAdjust[], ["extraCafe"]],
