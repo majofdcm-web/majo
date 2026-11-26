@@ -107,6 +107,8 @@ export interface ModifierOption {
   recipe?: RecipeAdjust[];
   /** Reemplaza por completo la receta base (ej. tamaño grande, o elegir baguette/ciabatta). */
   recipeOverride?: RecipeAdjust[];
+  /** Para grupos "many": viene seleccionado desde el inicio (ej. ingredientes que sí trae la receta). */
+  defaultChecked?: boolean;
 }
 
 export interface ModifierGroup {

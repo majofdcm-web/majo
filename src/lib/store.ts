@@ -51,11 +51,22 @@ interface AppState {
 
 /** Para datos de prueba: si el producto tiene un grupo de modificadores
  * obligatorio (tamaño, tipo de pan, combo...), elige la primera opción. */
+/** Grupos cuyas opciones solo cuentan si antes se eligió "Combo (+$60)" en el grupo "combo". */
+const COMBO_DEPENDENT_IDS = new Set(["comboCaliente", "comboFrio"]);
+
 function defaultSelection(st: AppState, product: Product): SelectedModifier[] {
   const sel: SelectedModifier[] = [];
   for (const gid of product.modifierGroupIds) {
+    if (COMBO_DEPENDENT_IDS.has(gid)) continue; // solo aplican si se eligió "Combo"; de prueba, por defecto no.
     const group = st.modifierGroups.find((g) => g.id === gid);
-    if (!group || !group.required) continue;
+    if (!group) continue;
+    if (group.type === "many") {
+      for (const opt of group.options) {
+        if (opt.defaultChecked) sel.push({ groupId: gid, name: opt.name, priceDelta: opt.priceDelta });
+      }
+      continue;
+    }
+    if (!group.required) continue;
     const opt = group.options[0];
     if (opt) sel.push({ groupId: gid, name: opt.name, priceDelta: opt.priceDelta });
   }
