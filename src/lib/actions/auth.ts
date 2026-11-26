@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { findUserByPin, loginAttemptStatus } from "@/lib/store";
 import { clearCurrentUser, getDeviceId, setCurrentUser } from "@/lib/session";
+import { firstAllowedPath } from "@/lib/nav";
 
 export async function loginWithPin(
   pin: string,
@@ -23,7 +24,7 @@ export async function loginWithPin(
   }
 
   await setCurrentUser(user.id);
-  redirect("/mesas");
+  redirect(firstAllowedPath(user));
 }
 
 export async function logout() {

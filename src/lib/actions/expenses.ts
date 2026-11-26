@@ -16,6 +16,7 @@ export async function registerExpenseAction(input: {
   origin: ExpenseOrigin;
   category: ExpenseCategory;
   hasInvoice: boolean;
+  stockPurchase?: { ingredientId: string; quantity: number };
 }) {
   try {
     const user = await getCurrentUser();

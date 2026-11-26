@@ -21,6 +21,7 @@ import type {
   OrderItem,
   PaymentMethod,
   Permission,
+  PhysicalCount,
   Product,
   Role,
   Sale,
@@ -45,6 +46,7 @@ interface AppState {
   shift: Shift | null;
   cashCounts: CashCount[];
   staffConsumptions: StaffConsumption[];
+  physicalCounts: PhysicalCount[];
   folio: number;
   loginAttempts: Record<string, { count: number; lockedUntil: number }>;
 }
@@ -162,6 +164,7 @@ function seedState(): AppState {
     shift: { id: randomUUID(), openedAt: Date.now() - 3 * 3600000, closedAt: null, fund: 1000, openedBy: "Caja" },
     cashCounts: [],
     staffConsumptions: [],
+    physicalCounts: [],
     folio: 1000,
     loginAttempts: {},
   };
@@ -524,6 +527,51 @@ export function sendToKitchen(user: User, orderId: string) {
   }
 }
 
+export interface KitchenItem {
+  orderId: string;
+  tableId: string;
+  tableName: string;
+  waiterName: string;
+  openedAt: number;
+  uid: string;
+  name: string;
+  qty: number;
+  modifiers: string[];
+  note: string;
+}
+
+export function listKitchenItems(): KitchenItem[] {
+  const out: KitchenItem[] = [];
+  for (const order of Object.values(state().orders)) {
+    const table = state().tables.find((t) => t.id === order.tableId);
+    for (const item of order.items) {
+      if (item.status !== "enviado") continue;
+      out.push({
+        orderId: order.id,
+        tableId: order.tableId,
+        tableName: table?.name ?? "—",
+        waiterName: order.waiterName,
+        openedAt: order.openedAt,
+        uid: item.uid,
+        name: item.name,
+        qty: item.qty,
+        modifiers: item.modifiers.map((m) => m.name),
+        note: item.note,
+      });
+    }
+  }
+  return out.sort((a, b) => a.openedAt - b.openedAt);
+}
+
+export function markItemReady(user: User, orderId: string, itemUid: string) {
+  requirePerm(user, "barra");
+  const order = state().orders[orderId];
+  if (!order) throw new Error("Orden no encontrada");
+  const item = order.items.find((i) => i.uid === itemUid);
+  if (!item) throw new Error("Producto no encontrado");
+  item.status = "listo";
+}
+
 function deductInventory(items: OrderItem[], sign: 1 | -1 = -1) {
   for (const item of items) {
     for (const [ingId, q] of Object.entries(item.recipe)) {
@@ -601,16 +649,33 @@ export function registerExpense(
     origin: ExpenseOrigin;
     category: ExpenseCategory;
     hasInvoice: boolean;
+    /** Si el gasto es una compra de insumo, suma esa cantidad al inventario
+     * y recalcula el costo promedio del insumo con lo pagado. */
+    stockPurchase?: { ingredientId: string; quantity: number };
   },
 ): Expense {
   requirePerm(user, "gastos");
+  const { stockPurchase, ...rest } = input;
   const expense: Expense = {
     id: randomUUID(),
     ts: Date.now(),
     registeredBy: user.name,
-    ...input,
+    ...rest,
   };
   state().expenses.push(expense);
+
+  if (stockPurchase && stockPurchase.quantity > 0) {
+    const ing = state().ingredients.find((i) => i.id === stockPurchase.ingredientId);
+    if (ing) {
+      const unitCost = round2(input.amount / stockPurchase.quantity);
+      const previousValue = round2(ing.stock * ing.cost);
+      const purchaseValue = round2(stockPurchase.quantity * unitCost);
+      const newStock = round2(ing.stock + stockPurchase.quantity);
+      ing.cost = newStock > 0 ? round2((previousValue + purchaseValue) / newStock) : unitCost;
+      ing.stock = newStock;
+    }
+  }
+
   return expense;
 }
 
@@ -754,4 +819,49 @@ export function updateIngredient(user: User, ingredientId: string, patch: Ingred
   if (patch.min !== undefined) ing.min = Math.max(0, patch.min);
   if (patch.stock !== undefined) ing.stock = Math.max(0, patch.stock);
   return ing;
+}
+
+export function listIngredientsByArea(area: Ingredient["area"]): Ingredient[] {
+  return state()
+    .ingredients.filter((i) => i.area === area)
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
+export interface PhysicalCountInput {
+  ingredientId: string;
+  counted: number;
+}
+
+export function submitPhysicalCount(user: User, area: Ingredient["area"], counts: PhysicalCountInput[]): PhysicalCount {
+  requirePerm(user, "conteo");
+  const lines = counts.map((c) => {
+    const ing = state().ingredients.find((i) => i.id === c.ingredientId);
+    if (!ing) throw new Error("Insumo no encontrado");
+    const previousStock = ing.stock;
+    const difference = round2(c.counted - previousStock);
+    const differenceValue = round2(difference * ing.cost);
+    ing.stock = Math.max(0, c.counted);
+    return {
+      ingredientId: ing.id,
+      ingredientName: ing.name,
+      unit: ing.unit,
+      previousStock,
+      countedStock: c.counted,
+      difference,
+      differenceValue,
+    };
+  });
+  const record: PhysicalCount = {
+    id: randomUUID(),
+    ts: Date.now(),
+    area,
+    countedBy: user.name,
+    lines,
+  };
+  state().physicalCounts.push(record);
+  return record;
+}
+
+export function listPhysicalCounts(limit = 10): PhysicalCount[] {
+  return [...state().physicalCounts].sort((a, b) => b.ts - a.ts).slice(0, limit);
 }

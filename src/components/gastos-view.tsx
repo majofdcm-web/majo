@@ -8,7 +8,19 @@ import { EXPENSE_CATEGORIES, EXPENSE_ORIGINS } from "@/lib/types";
 import type { Expense, ExpenseCategory, ExpenseOrigin } from "@/lib/types";
 import { SUPPLIERS } from "@/lib/seed";
 
-export default function GastosView({ expenses }: { expenses: Expense[] }) {
+interface IngredientOption {
+  id: string;
+  name: string;
+  unit: string;
+}
+
+export default function GastosView({
+  expenses,
+  ingredients,
+}: {
+  expenses: Expense[];
+  ingredients: IngredientOption[];
+}) {
   const router = useRouter();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -16,13 +28,20 @@ export default function GastosView({ expenses }: { expenses: Expense[] }) {
   const [origin, setOrigin] = useState<ExpenseOrigin>(EXPENSE_ORIGINS[0]);
   const [category, setCategory] = useState<ExpenseCategory>(EXPENSE_CATEGORIES[0]);
   const [hasInvoice, setHasInvoice] = useState(false);
+  const [ingredientId, setIngredientId] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [savedMsg, setSavedMsg] = useState("");
+
+  const selectedIngredient = ingredients.find((i) => i.id === ingredientId);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError("");
+    setSavedMsg("");
+    const qty = Number(quantity) || 0;
     const res = await registerExpenseAction({
       description,
       amount: Number(amount) || 0,
@@ -30,15 +49,21 @@ export default function GastosView({ expenses }: { expenses: Expense[] }) {
       origin,
       category,
       hasInvoice,
+      stockPurchase: category === "Insumos" && ingredientId && qty > 0 ? { ingredientId, quantity: qty } : undefined,
     });
     setBusy(false);
     if (!res.ok) {
       setError(res.error);
       return;
     }
+    if (category === "Insumos" && ingredientId && qty > 0) {
+      setSavedMsg(`Se sumaron ${qty} ${selectedIngredient?.unit ?? ""} de ${selectedIngredient?.name} al inventario.`);
+    }
     setDescription("");
     setAmount("");
     setHasInvoice(false);
+    setIngredientId("");
+    setQuantity("");
     router.refresh();
   }
 
@@ -110,6 +135,48 @@ export default function GastosView({ expenses }: { expenses: Expense[] }) {
           <input type="checkbox" className="w-5 h-5" checked={hasInvoice} onChange={(e) => setHasInvoice(e.target.checked)} />
           <span>Tiene factura</span>
         </label>
+
+        {category === "Insumos" && (
+          <div className="flex flex-col gap-3 p-3 rounded-xl bg-(--teal-t)">
+            <p className="text-sm font-semibold text-(--teal)">¿Esto entra al inventario?</p>
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
+                <label htmlFor="ingrediente" className="text-sm font-semibold text-(--muted)">
+                  Insumo comprado (opcional)
+                </label>
+                <select id="ingrediente" className="input" value={ingredientId} onChange={(e) => setIngredientId(e.target.value)}>
+                  <option value="">— Ninguno —</option>
+                  {ingredients.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name} ({i.unit})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {ingredientId && (
+                <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+                  <label htmlFor="cantidad" className="text-sm font-semibold text-(--muted)">
+                    Cantidad comprada ({selectedIngredient?.unit})
+                  </label>
+                  <input
+                    id="cantidad"
+                    className="input"
+                    inputMode="decimal"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, ""))}
+                  />
+                </div>
+              )}
+            </div>
+            {ingredientId && (
+              <p className="text-xs text-(--muted)">
+                Suma esa cantidad al inventario y recalcula el costo de {selectedIngredient?.name} con lo pagado.
+              </p>
+            )}
+          </div>
+        )}
+
+        {savedMsg && <p className="chip chip-ok w-fit">{savedMsg}</p>}
         {error && <p className="text-(--red) text-sm">{error}</p>}
         <button type="submit" className="btn btn-pri" disabled={busy}>
           {busy ? "Guardando…" : "Registrar gasto"}

@@ -264,3 +264,22 @@ export interface StaffConsumption {
   cost: number;
   registeredBy: string;
 }
+
+export interface PhysicalCountLine {
+  ingredientId: string;
+  ingredientName: string;
+  unit: string;
+  previousStock: number;
+  countedStock: number;
+  difference: number;
+  differenceValue: number;
+}
+
+/** Conteo físico semanal de un área. La diferencia valuada a costo es la merma. */
+export interface PhysicalCount {
+  id: string;
+  ts: number;
+  area: Ingredient["area"];
+  countedBy: string;
+  lines: PhysicalCountLine[];
+}
