@@ -269,6 +269,10 @@ export const MODIFIER_GROUPS_REAL: ModifierGroup[] = [
   { id: "extraCafe", name: "Extras de café", type: "many", required: false, options: [
       { name: "Shot extra de café", priceDelta: 15, recipe: [["cafe", 7]] as RecipeAdjust[] },
     ] },
+  { id: "tamCafeExpressoAmericano", name: "Tamaño", type: "one", required: true, options: [
+      { name: "Mediano", priceDelta: 0, recipeOverride: [["agua", 270], ["cafe", 7.5]] as RecipeAdjust[] },
+      { name: "Grande", priceDelta: 4, recipeOverride: [["agua", 540], ["cafe", 15]] as RecipeAdjust[] },
+    ] },
   { id: "ingPanMasaMadre", name: "Ingredientes", type: "many", required: false, options: [
       { name: "Pan Masa Madre", priceDelta: 0, recipe: [["panMasaMadre", 1]] as RecipeAdjust[], defaultChecked: true },
     ] },
@@ -699,13 +703,14 @@ export const MODIFIER_GROUPS_REAL: ModifierGroup[] = [
       { name: "Pan Dulce", priceDelta: 0, recipe: [["panDulce", 1]] as RecipeAdjust[], defaultChecked: true },
     ] },
   { id: "extras", name: "Extras", type: "many", required: false, options: [
-      { name: "Piquito de gallo", priceDelta: 15, recipe: [["piquitoDeGallo", 40]] as RecipeAdjust[] },
-      { name: "Extra de crema", priceDelta: 10, recipe: [["cremaAlpura", 30]] as RecipeAdjust[] },
-      { name: "Extra de queso", priceDelta: 15, recipe: [["quesoPanela", 30]] as RecipeAdjust[] },
-      { name: "Extra de aguacate", priceDelta: 20, recipe: [["aguacate", 40]] as RecipeAdjust[] },
-      { name: "Extra de chilaquiles", priceDelta: 25, recipe: [["totopos", 50], ["salsaVerde", 80]] as RecipeAdjust[] },
-      { name: "Extra de tocino", priceDelta: 20, recipe: [["tocino", 20]] as RecipeAdjust[] },
-      { name: "Extra de frijoles", priceDelta: 15, recipe: [["frijolNegro", 60]] as RecipeAdjust[] },
+      { name: "Extra de pico de gallo", priceDelta: 15, recipe: [["jitomate", 20], ["cebollaBlanca", 20], ["chileSerrano", 5], ["sal", 0.35], ["pimienta", 0.35]] as RecipeAdjust[] },
+      { name: "Extra de crema", priceDelta: 10, recipe: [["cremaAlpura", 40]] as RecipeAdjust[] },
+      { name: "Extra de queso panela", priceDelta: 15, recipe: [["quesoPanela", 30]] as RecipeAdjust[] },
+      { name: "Extra de queso manchego", priceDelta: 15, recipe: [["quesoManchego", 60]] as RecipeAdjust[] },
+      { name: "Extra de aguacate", priceDelta: 20, recipe: [["aguacate", 60]] as RecipeAdjust[] },
+      { name: "Extra de chilaquiles", priceDelta: 25, recipe: [["totopos", 35], ["salsaRoja", 75]] as RecipeAdjust[] },
+      { name: "Extra de tocino", priceDelta: 20, recipe: [["tocino", 15]] as RecipeAdjust[] },
+      { name: "Extra de frijoles", priceDelta: 15, recipe: [["frijolNegro", 70]] as RecipeAdjust[] },
     ] },
   { id: "huevoEstilo", name: "Huevo", type: "one", required: true, options: [
       { name: "Estrellado", priceDelta: 0 },
@@ -913,6 +918,7 @@ export function seedProductsReal(): Product[] {
     ["cafeAmericanoRefil", "Americano refil", "Café", 50, [["agua", 810], ["cafe", 22.5]] as RecipeAdjust[], ["extraCafe"]],
     ["cafeEspressoSencillo", "Espresso sencillo", "Café", 42, [["agua", 60], ["cafe", 7.5]] as RecipeAdjust[], ["extraCafe"]],
     ["cafeExpressoDoble", "Expresso doble", "Café", 50, [["agua", 60], ["cafe", 15]] as RecipeAdjust[], ["extraCafe"]],
+    ["cafeExpressoAmericano", "Espresso Americano", "Café", 50, [["agua", 270], ["cafe", 7.5]] as RecipeAdjust[], ["tamCafeExpressoAmericano", "extraCafe"]],
     ["cafeCapuchino", "Capuchino", "Café", 50, [["agua", 70], ["cafe", 7.5], ["leche", 150]] as RecipeAdjust[], ["lecheYTamCafeCapuchino", "extraCafe"]],
     ["cafeLatte", "Latte", "Café", 70, [["agua", 70], ["cafe", 7.5], ["leche", 150]] as RecipeAdjust[], ["lecheYTamCafeLatte", "extraCafe"]],
     ["cafeMochaOBlanco", "Mocha o blanco", "Café", 70, [["agua", 70], ["cafe", 7.5], ["leche", 150], ["polvoDeChocolate", 22]] as RecipeAdjust[], ["lecheYTamCafeMochaOBlanco", "extraCafe"]],
