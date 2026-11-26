@@ -13,6 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/gastos", label: "Gastos", test: (u) => can(u, "gastos") },
   { href: "/corte", label: "Corte de caja", test: (u) => can(u, "corte") },
   { href: "/clientes", label: "Clientes frecuentes", test: (u) => can(u, "ventasHoy") },
+  { href: "/insumos", label: "Insumos", test: (u) => can(u, "inventario") },
   { href: "/usuarios", label: "Usuarios y permisos", test: (u) => can(u, "usuarios") },
 ];
 

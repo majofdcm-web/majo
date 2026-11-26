@@ -731,3 +731,27 @@ export function registerStaffConsumption(
 export function listStaffConsumptions(limit = 30): StaffConsumption[] {
   return [...state().staffConsumptions].sort((a, b) => b.ts - a.ts).slice(0, limit);
 }
+
+export function listIngredients(): Ingredient[] {
+  return [...state().ingredients].sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
+export interface IngredientPatch {
+  cost?: number;
+  supplier?: string;
+  area?: Ingredient["area"];
+  min?: number;
+  stock?: number;
+}
+
+export function updateIngredient(user: User, ingredientId: string, patch: IngredientPatch) {
+  requirePerm(user, "inventario");
+  const ing = state().ingredients.find((i) => i.id === ingredientId);
+  if (!ing) throw new Error("Insumo no encontrado");
+  if (patch.cost !== undefined) ing.cost = Math.max(0, patch.cost);
+  if (patch.supplier !== undefined) ing.supplier = patch.supplier;
+  if (patch.area !== undefined) ing.area = patch.area;
+  if (patch.min !== undefined) ing.min = Math.max(0, patch.min);
+  if (patch.stock !== undefined) ing.stock = Math.max(0, patch.stock);
+  return ing;
+}
