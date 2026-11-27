@@ -1,4 +1,9 @@
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
 @import "tailwindcss";
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+@import "@astryxdesign/theme-neutral/theme.css";
 
 :root {
   --bg: #f4f3ef;
@@ -103,6 +108,20 @@ body {
   .chip-n {
     background: var(--bg);
     color: var(--muted);
+  }
+}
+
+/* Compatibilidad con pantallas previas a Astryx: el tema Neutral da color y
+ * tipografía a <h1>–<h6> y <p> sueltos; aquí vuelven a heredar del contenedor,
+ * como con el preflight de Tailwind. Los Heading/Text de Astryx no se afectan
+ * (su capa astryx-base va por encima de base). Quitar al migrar esas pantallas. */
+@layer base {
+  :where(h1, h2, h3, h4, h5, h6, p) {
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
   }
 }
 
